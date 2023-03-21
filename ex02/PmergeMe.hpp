@@ -20,7 +20,7 @@ class PmergeMe {
 				char const * what() const throw();
 		};
 
-	// private: // TODO: make private again
+	private:
 		typedef unsigned int element_type;
 		typedef std::vector<element_type> container1;
 		typedef std::list<element_type> container2;
@@ -52,7 +52,5 @@ class PmergeMe {
 		static void _sort(container1 & container, size_t min_index, size_t max_index);
 		static void _sort(container2 & container, size_t min_index, size_t max_index);
 };
-
-std::ostream & operator<<(std::ostream & ostream, PmergeMe const & pmerge_me);
 
 #endif

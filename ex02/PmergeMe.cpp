@@ -1,5 +1,7 @@
 #include "PmergeMe.hpp"
+#include <chrono>
 #include <sstream>
+#include <iostream>
 
 // --- Public ---
 
@@ -26,8 +28,29 @@ PmergeMe PmergeMe::from(char **args) {
 }
 
 void PmergeMe::sort() {
+	std::cout << "Before: ";
+	for (container1::const_iterator it = this->_container1.begin(); it != this->_container1.end(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+
+	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 	PmergeMe::_sort(this->_container1, 0, this->_element_count - 1);
+	std::chrono::high_resolution_clock::time_point middle = std::chrono::high_resolution_clock::now();
 	PmergeMe::_sort(this->_container2, 0, this->_element_count - 1);
+	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+	std::cout << "After: ";
+	for (container1::const_iterator it = this->_container1.begin(); it != this->_container1.end(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+
+    std::chrono::microseconds time1 = std::chrono::duration_cast<std::chrono::microseconds>(middle - start);
+    std::chrono::microseconds time2 = std::chrono::duration_cast<std::chrono::microseconds>(end - middle);
+
+	std::cout << "Time to process a range of " << "\x1b[34m" << this->_container1.size() << "\x1b[0m" << " elements with " << "\x1b[34m" << "std::vector" << "\x1b[0m" << " : " << time1.count() << "μs" << std::endl;
+	std::cout << "Time to process a range of " << "\x1b[34m" << this->_container1.size() << "\x1b[0m" << " elements with " << "\x1b[34m" << "std::list" << "\x1b[0m" << " : " << time2.count() << "μs" << std::endl;
 }
 
 // --- OCF ---
@@ -198,17 +221,4 @@ void PmergeMe::_sort(container2 & container, size_t min_index, size_t max_index)
 	else {
 		PmergeMe::_insertion_sort(container, min_index, max_index);
 	}
-}
-
-std::ostream & operator<<(std::ostream & ostream, PmergeMe const & pmerge_me) {
-	ostream << "container1: ";
-	for (PmergeMe::container1::const_iterator it = pmerge_me._container1.begin(); it != pmerge_me._container1.end(); ++it) {
-		ostream << *it << " ";
-	}
-	ostream << std::endl;
-	ostream << "container2: ";
-	for (PmergeMe::container2::const_iterator it = pmerge_me._container2.begin(); it != pmerge_me._container2.end(); ++it) {
-		ostream << *it << " ";
-	}
-	return ostream;
 }
