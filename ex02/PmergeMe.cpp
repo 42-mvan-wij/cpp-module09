@@ -15,7 +15,7 @@ PmergeMe PmergeMe::from(char **args) {
 		ss >> e;
 
 		if (ss.fail() || !ss.eof()) {
-			throw "Some error"; // TODO: upgrade error
+			throw PmergeMe::NotANumber();
 		}
 
 		result._container1.push_back(e);
@@ -43,6 +43,10 @@ PmergeMe &PmergeMe::operator=(PmergeMe const & src) {
 	this->_container1 = src._container1;
 	this->_container2 = src._container2;
 	return *this;
+}
+
+char const * PmergeMe::NotANumber::what() const throw() {
+	return "Not a number";
 }
 
 // --- Protected ---

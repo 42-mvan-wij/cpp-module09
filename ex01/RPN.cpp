@@ -42,7 +42,7 @@ RPN::RPN(std::string rpn) {
 			int i;
 			std::stringstream ss(token);
 			ss >> i;
-			if (!ss.eof()) {
+			if (ss.fail() || !ss.eof()) {
 				throw RPN::NotAnInteger();
 			}
 		}
@@ -84,6 +84,9 @@ int	RPN::calculate() const {
 			int i;
 			std::stringstream ss(token);
 			ss >> i;
+			if (ss.fail()) {
+				throw RPN::StreamFail();
+			}
 			stack.push_back(i);
 		}
 	}
@@ -91,20 +94,24 @@ int	RPN::calculate() const {
 	return stack.front();
 }
 
-const char * RPN::NoCalculation::what() const throw() {
+char const * RPN::NoCalculation::what() const throw() {
 	return "No calculation to be done";
 }
 
-const char * RPN::NotAnInteger::what() const throw() {
+char const * RPN::NotAnInteger::what() const throw() {
 	return "Not an integer";
 }
 
-const char * RPN::NotEnoughOperands::what() const throw() {
+char const * RPN::NotEnoughOperands::what() const throw() {
 	return "Not enough operands";
 }
 
-const char * RPN::NotEnoughOperators::what() const throw() {
+char const * RPN::NotEnoughOperators::what() const throw() {
 	return "Not enough operators";
+}
+
+char const * RPN::StreamFail::what() const throw() {
+	return "Stream operation failed";
 }
 
 // --- OCF ---

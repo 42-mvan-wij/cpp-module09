@@ -15,6 +15,11 @@ class PmergeMe {
 
 		void sort();
 
+		class NotANumber : public std::exception {
+			public:
+				char const * what() const throw();
+		};
+
 	// private: // TODO: make private again
 		typedef unsigned int element_type;
 		typedef std::vector<element_type> container1;

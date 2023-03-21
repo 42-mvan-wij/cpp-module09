@@ -17,16 +17,54 @@ class BitcoinExchange {
 		virtual ~BitcoinExchange();
 		BitcoinExchange & operator=(BitcoinExchange const & src);
 
+		class ParseError : public std::exception {
+			public:
+				char const * what() const throw();
+		};
+
+		class DuplicateDate : public std::exception {
+			public:
+				char const * what() const throw();
+		};
+
+		class EmptyFinalLine : public ParseError {
+			public:
+				char const * what() const throw();
+		};
+
+		class InvalidFormat : public ParseError {
+			public:
+				char const * what() const throw();
+		};
+
+		class InvalidValue : public ParseError {
+			public:
+				char const * what() const throw();
+		};
+
+		class StreamError : public std::exception {
+			public:
+				char const * what() const throw();
+		};
+
+		class ValueTooHigh : public InvalidValue {
+			public:
+				char const * what() const throw();
+		};
+
+		class ValueTooLow : public InvalidValue {
+			public:
+				char const * what() const throw();
+		};
+
 	private:
 		typedef std::map<Date, double> map;
 
-		std::map<std::string, std::string> _parse(std::istream & istream, std::string sep) const; // TODO: remove
 		static std::pair<Date, double> _parse_line(std::istream & istream, std::string sep);
-
 		static map::const_reverse_iterator _binary_search_map_reverse(map const & map, map::key_type const & search_value);
 		BitcoinExchange();
 
-		map _exchange_rate; // TODO: use better types
+		map _exchange_rate;
 
 };
 

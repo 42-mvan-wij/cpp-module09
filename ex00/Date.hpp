@@ -2,10 +2,16 @@
 #ifndef DATE_HPP
 # define DATE_HPP
 
+#include <string>
+
 class Date {
 	public:
 		Date(size_t year, size_t month, size_t day);
 		Date(std::string date_string);
+
+		size_t get_year() const;
+		size_t get_month() const;
+		size_t get_day() const;
 
 		bool operator==(Date const & rhs) const;
 		bool operator<(Date const & rhs) const;
@@ -21,10 +27,10 @@ class Date {
 
 		class InvalidDate : public std::exception {
 			public:
-				const char * what() const throw();
+				char const * what() const throw();
 		};
 
-	// private: // TODO: make private again
+	private:
 		size_t _year;
 		size_t _month;
 		size_t _day;

@@ -1,92 +1,53 @@
 #include <fstream>
 #include <sstream>
+#include <iostream>
 #include "BitcoinExchange.hpp"
 
 // --- Public ---
 
-#include <iostream> // TODO: remove
 BitcoinExchange::BitcoinExchange(std::string exchange_filename) {
 	std::ifstream exchange_file(exchange_filename.c_str());
-	if (exchange_file.fail()) {
-		// throw BitcoinExchange:: // TODO: throw some error
+	if (exchange_file.fail() || !exchange_file.is_open()) {
+		throw BitcoinExchange::StreamError();
 	}
 
 	std::string line;
 	std::getline(exchange_file, line);
 	if (line != "date,exchange_rate") {
-		std::cout << "Invalid format" << std::endl;
-		throw "Invalid format"; // TODO: make proper error
+		throw BitcoinExchange::InvalidFormat();
 	}
-
 
 	while (!exchange_file.fail() && !exchange_file.eof()) {
 		try {
 			std::pair<Date, double> pair(BitcoinExchange::_parse_line(exchange_file, ","));
 
 			if (this->_exchange_rate.count(pair.first) != 0) {
-				std::cout << "Duplicate date" << std::endl;
-				throw "Duplicate date";
+				throw BitcoinExchange::DuplicateDate();
 			}
 
 			this->_exchange_rate.insert(pair);
-		} catch (char const * & e) {
-			if (std::string(e) != "Empty final line") {
-				throw ;
-			}
+		} catch (BitcoinExchange::EmptyFinalLine &) {
 		}
-		// if (pair.second < 0) {
-		// 	std::cout << "Negative value" << std::endl;
-		// 	throw "Negative value";
-		// }
-		// if (pair.second > 1000) {
-		// 	std::cout << "Value too high" << std::endl;
-		// 	throw "Value too high";
-		// }
 	}
-
-
-
-
-	// this->_exchange_rate = this->_parse(exchange_file, ",");
-	// std::map<Date, float> mm;
-	// for (decltype(this->_exchange_rate)::const_iterator it = this->_exchange_rate.begin(); it != this->_exchange_rate.end(); ++it) {
-	// 	Date d(it->first);
-	// 	if (mm.count(d) != 0) {
-	// 		std::cout << "Duplicate date: " << d << " // " << it->first << std::endl;
-	// 		throw "Duplicate date"; // TODO: make proper error
-	// 	}
-	// 	double f;
-	// 	std::stringstream ss(it->second);
-	// 	ss >> f;
-	// 	if (ss.fail() || !ss.eof()) {
-	// 		std::cout << "Not a floating point number" << std::endl;
-	// 		throw "Not a floating point number"; // TODO: make proper error
-	// 	}
-	// 	mm[d] = f;
-	// }
 }
 
 void BitcoinExchange::parse(std::istream & istream) const {
 	std::string line;
 	std::getline(istream, line);
 	if (istream.fail()) {
-		std::cout << "Fail" << std::endl;
-		throw "Fail";
+		throw BitcoinExchange::StreamError();
 	}
 	if (line != "date | value") {
-		std::cout << "Invalid format" << std::endl;
-		throw "Invalid format"; // TODO: make proper error
+		throw BitcoinExchange::InvalidFormat();
 	}
 	while (!istream.fail() && !istream.eof()) {
 		try {
 			std::pair<Date, double> pair(BitcoinExchange::_parse_line(istream, " | "));
 			if (pair.second < 0) {
-				std::cout << "Negative value" << std::endl;
-				throw "Negative value";
+				throw BitcoinExchange::ValueTooLow();
 			}
 			if (pair.second > 1000) {
-				std::cout << "Value too high" << std::endl;
-				throw "Value too high";
+				throw BitcoinExchange::ValueTooHigh();
 			}
 
 			map::const_reverse_iterator it = BitcoinExchange::_binary_search_map_reverse(this->_exchange_rate, pair.first);
@@ -96,18 +57,50 @@ void BitcoinExchange::parse(std::istream & istream) const {
 				throw "Date before recording"; // TODO: make better error
 			}
 			std::cout << pair.first << " => " << pair.second << " = " << (pair.second * it->second) << std::endl;
-		} catch (std::exception & e) { // TODO: maybe narrow down exception (and maybe use multiple catch statements)
-			std::cerr << "\x1b[33m" << e.what() << "\x1b[0m" << std::endl;
-		} catch (...) { // TODO: maybe narrow down exception (and maybe use multiple catch statements)
-			std::cerr << "\x1b[33m" << "Unkown error" << "\x1b[0m" << std::endl;
+		} catch (BitcoinExchange::EmptyFinalLine & e) {
+		} catch (BitcoinExchange::ParseError & e) {
+			std::cout << "Error: " << e.what() << std::endl;
+		} catch (Date::InvalidDate & e) {
+			std::cout << "Error: " << e.what() << std::endl;
 		}
 	}
-	std::map<std::string, std::string> m = this->_parse(istream, " | ");
+}
+
+char const * BitcoinExchange::ParseError::what() const throw() {
+	return "Error occurred during parsing";
+}
+
+char const * BitcoinExchange::DuplicateDate::what() const throw() {
+	return "Duplicate date";
+}
+
+char const * BitcoinExchange::EmptyFinalLine::what() const throw() {
+	return "Empty final line in file";
+}
+
+char const * BitcoinExchange::InvalidFormat::what() const throw() {
+	return "Invalid format";
+}
+
+char const * BitcoinExchange::InvalidValue::what() const throw() {
+	return "Value out of range";
+}
+
+char const * BitcoinExchange::StreamError::what() const throw() {
+	return "Stream operation error";
+}
+
+char const * BitcoinExchange::ValueTooHigh::what() const throw() {
+	return "Value too high";
+}
+
+char const * BitcoinExchange::ValueTooLow::what() const throw() {
+	return "Value too low";
 }
 
 // --- OCF ---
 
-BitcoinExchange::BitcoinExchange(const BitcoinExchange &src) {
+BitcoinExchange::BitcoinExchange(BitcoinExchange const &src) {
 	*this = src;
 }
 
@@ -129,61 +122,34 @@ BitcoinExchange::BitcoinExchange() {
 // static
 std::pair<Date, double> BitcoinExchange::_parse_line(std::istream & istream, std::string sep) {
 	if (istream.eof()) {
-		std::cout << "EOF" << std::endl;
-		throw "EOF"; // TODO: make proper error
+		throw BitcoinExchange::StreamError();
 	}
 	std::string line;
 	std::getline(istream, line);
 	if (line.empty() && istream.eof()) {
-		std::cout << "Empty final line" << std::endl;
-		throw "Empty final line";
+		throw BitcoinExchange::EmptyFinalLine();
 	}
 	if (istream.fail()) {
-		std::cout << "Fail" << std::endl;
-		throw "Fail";
+		throw BitcoinExchange::StreamError();
 	}
 	size_t pos = line.find(sep);
 	if (pos == line.npos) {
-		std::cout << "Missing \"" << sep << "\": " << line << std::endl;
-		throw "Missing separator"; // TODO: make proper error
+		throw BitcoinExchange::InvalidFormat();
 	}
 	double d;
 	std::stringstream ss(line.substr(pos + sep.length()));
 	if (ss.eof()) {
-		std::cout << "Not a floating point number: " << line << std::endl;
-		throw "Not a floating point number"; // TODO: make proper error
+		throw BitcoinExchange::InvalidFormat();
 	}
 	ss >> d;
 	if (ss.fail() || !ss.eof()) {
-		std::cout << "Not a floating point number: " << line << std::endl;
-		throw "Not a floating point number"; // TODO: make proper error
+		throw BitcoinExchange::InvalidFormat();
 	}
 	std::pair<Date, double> pair(line.substr(0, pos), d);
 	return pair;
 }
 
-std::map<std::string, std::string> BitcoinExchange::_parse(std::istream & istream, std::string sep) const {
-	std::map<std::string, std::string> result;
-	std::string line;
-
-	while (!istream.eof()) {
-		std::getline(istream, line);
-		if (line == "" && istream.eof()) {
-			break ;
-		}
-		size_t pos = line.find(sep);
-		if (pos == line.npos) {
-			std::cout << "Missing \"" << sep << "\"" << std::endl;
-			throw "Missing separator"; // TODO: make proper error
-		}
-		std::string field1(line.substr(0, pos));
-		std::string field2(line.substr(pos + sep.length()));
-		result[field1] = field2;
-		// std::cout << "Added " << field1 << " - \"" << sep << "\" - " << field2 << std::endl;
-	}
-	return result;
-}
-
+// static
 BitcoinExchange::map::const_reverse_iterator BitcoinExchange::_binary_search_map_reverse(map const & map, map::key_type const & search_value) {
 	size_t len = map.size();
 	size_t search_start = 0;

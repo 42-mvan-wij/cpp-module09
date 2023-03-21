@@ -14,41 +14,48 @@ Date::Date(std::string date_string) {
 	std::stringstream ss(date_string);
 	ss >> this->_year;
 	if (ss.fail()) {
-		std::cout << "error" << std::endl;
-		throw "error"; // TODO: better error
+		throw Date::InvalidDate();
 	}
 	char c;
 	ss >> c;
 	if (ss.fail() || c != '-') {
-		std::cout << "error" << std::endl;
-		throw "error"; // TODO: better error
+		throw Date::InvalidDate();
 	}
 	ss >> this->_month;
 	if (ss.fail()) {
-		std::cout << "error" << std::endl;
-		throw "error"; // TODO: better error
+		throw Date::InvalidDate();
 	}
 	ss >> c;
 	if (ss.fail() || c != '-') {
-		std::cout << "error" << std::endl;
-		throw "error"; // TODO: better error
+		throw Date::InvalidDate();
 	}
 	ss >> this->_day;
 	if (ss.fail()) {
-		std::cout << "error" << std::endl;
-		throw "error"; // TODO: better error
+		throw Date::InvalidDate();
 	}
 	if (!ss.eof()) {
 		std::cout << "error" << std::endl;
-		throw "error"; // TODO: better error
+		throw Date::InvalidDate();
 	}
 	if (!this->_vali_date()) {
 		throw Date::InvalidDate();
 	}
 }
 
+size_t Date::get_year() const {
+	return this->_year;
+}
+
+size_t Date::get_month() const {
+	return this->_month;
+}
+
+size_t Date::get_day() const {
+	return this->_day;
+}
+
 std::ostream & operator<<(std::ostream & ostream, Date const & date) {
-	ostream << date._year << "-" << date._month << "-" << date._day;
+	ostream << date.get_year() << "-" << date.get_month() << "-" << date.get_day();
 	return ostream;
 }
 
@@ -85,13 +92,13 @@ bool Date::operator>=(Date const & rhs) const {
 	return (!this->operator<(rhs));
 }
 
-const char * Date::InvalidDate::what() const throw() {
+char const * Date::InvalidDate::what() const throw() {
 	return "Invalid Date";
 }
 
 // --- OCF ---
 
-Date::Date(const Date & src) {
+Date::Date(Date const & src) {
 	*this = src;
 }
 

@@ -12,22 +12,27 @@ class RPN {
 
 		class NoCalculation : public std::exception {
 			public:
-				const char * what() const throw();
+				char const * what() const throw();
 		};
 
 		class NotAnInteger : public std::exception {
 			public:
-				const char * what() const throw();
+				char const * what() const throw();
 		};
 
 		class NotEnoughOperands : public std::exception {
 			public:
-				const char * what() const throw();
+				char const * what() const throw();
 		};
 
 		class NotEnoughOperators : public std::exception {
 			public:
-				const char * what() const throw();
+				char const * what() const throw();
+		};
+
+		class StreamFail : public std::exception {
+			public:
+				char const * what() const throw();
 		};
 
 		RPN(RPN const & src);
