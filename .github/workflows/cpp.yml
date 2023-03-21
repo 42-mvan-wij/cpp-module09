@@ -1,0 +1,28 @@
+name: macOS/Ubuntu compile check
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+    branches: [ master ]
+
+jobs:
+  ubuntu_compile_check:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build cpp-module-09
+      run:  for dir in *; do if [ -d $dir ]; then make -C $dir; fi; done
+
+  macos_compile_check:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build cpp-module-09
+      run:  for dir in *; do if [ -d $dir ]; then make -C $dir; fi; done
