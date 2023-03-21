@@ -6,7 +6,7 @@
 
 #include <iostream> // TODO: remove
 BitcoinExchange::BitcoinExchange(std::string exchange_filename) {
-	std::ifstream exchange_file(exchange_filename);
+	std::ifstream exchange_file(exchange_filename.c_str());
 	if (exchange_file.fail()) {
 		// throw BitcoinExchange:: // TODO: throw some error
 	}
