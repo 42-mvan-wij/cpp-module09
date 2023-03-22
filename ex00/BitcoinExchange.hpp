@@ -22,9 +22,22 @@ class BitcoinExchange {
 				char const * what() const throw();
 		};
 
+		class DateTooEarly : public ParseError {
+			public:
+        		virtual ~DateTooEarly() throw();
+				DateTooEarly(Date date);
+				char const * what() const throw();
+			private:
+				std::string _error_text;
+		};
+
 		class DuplicateDate : public std::exception {
 			public:
+        		virtual ~DuplicateDate() throw();
+				DuplicateDate(Date date);
 				char const * what() const throw();
+			private:
+				std::string _error_text;
 		};
 
 		class EmptyFinalLine : public ParseError {
@@ -34,12 +47,21 @@ class BitcoinExchange {
 
 		class InvalidFormat : public ParseError {
 			public:
+        		virtual ~InvalidFormat() throw();
+				InvalidFormat();
+				InvalidFormat(std::string str);
 				char const * what() const throw();
+			private:
+				std::string _error_text;
 		};
 
 		class InvalidValue : public ParseError {
 			public:
+        		virtual ~InvalidValue() throw();
+				InvalidValue(double value);
 				char const * what() const throw();
+			protected:
+				std::string _error_text;
 		};
 
 		class StreamError : public std::exception {
@@ -49,12 +71,16 @@ class BitcoinExchange {
 
 		class ValueTooHigh : public InvalidValue {
 			public:
-				char const * what() const throw();
+				virtual ~ValueTooHigh() throw();
+				ValueTooHigh(double value);
+				ValueTooHigh(double value, double highest);
 		};
 
 		class ValueTooLow : public InvalidValue {
 			public:
-				char const * what() const throw();
+				virtual ~ValueTooLow() throw();
+				ValueTooLow(double value);
+				ValueTooLow(double value, double lowest);
 		};
 
 	private:

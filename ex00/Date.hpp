@@ -27,7 +27,13 @@ class Date {
 
 		class InvalidDate : public std::exception {
 			public:
+				virtual ~InvalidDate() throw();
+				InvalidDate();
+				InvalidDate(size_t year, size_t month, size_t day);
+				InvalidDate(std::string date_string);
 				char const * what() const throw();
+			private:
+				std::string _error_text;
 		};
 
 	private:

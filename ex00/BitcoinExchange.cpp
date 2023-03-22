@@ -3,7 +3,7 @@
 #include <iostream>
 #include "BitcoinExchange.hpp"
 
-// --- Public ---
+// --- Public --- //
 
 BitcoinExchange::BitcoinExchange(std::string exchange_filename) {
 	std::ifstream exchange_file(exchange_filename.c_str());
@@ -14,7 +14,7 @@ BitcoinExchange::BitcoinExchange(std::string exchange_filename) {
 	std::string line;
 	std::getline(exchange_file, line);
 	if (line != "date,exchange_rate") {
-		throw BitcoinExchange::InvalidFormat();
+		throw BitcoinExchange::InvalidFormat(line);
 	}
 
 	while (!exchange_file.fail() && !exchange_file.eof()) {
@@ -22,7 +22,7 @@ BitcoinExchange::BitcoinExchange(std::string exchange_filename) {
 			std::pair<Date, double> pair(BitcoinExchange::_parse_line(exchange_file, ","));
 
 			if (this->_exchange_rate.count(pair.first) != 0) {
-				throw BitcoinExchange::DuplicateDate();
+				throw BitcoinExchange::DuplicateDate(pair.first);
 			}
 
 			this->_exchange_rate.insert(pair);
@@ -38,67 +38,130 @@ void BitcoinExchange::parse(std::istream & istream) const {
 		throw BitcoinExchange::StreamError();
 	}
 	if (line != "date | value") {
-		throw BitcoinExchange::InvalidFormat();
+		throw BitcoinExchange::InvalidFormat(line);
 	}
 	while (!istream.fail() && !istream.eof()) {
 		try {
 			std::pair<Date, double> pair(BitcoinExchange::_parse_line(istream, " | "));
 			if (pair.second < 0) {
-				throw BitcoinExchange::ValueTooLow();
+				throw BitcoinExchange::ValueTooLow(pair.second, 0);
 			}
 			if (pair.second > 1000) {
-				throw BitcoinExchange::ValueTooHigh();
+				throw BitcoinExchange::ValueTooHigh(pair.second, 1000);
 			}
 
 			map::const_reverse_iterator it = BitcoinExchange::_binary_search_map_reverse(this->_exchange_rate, pair.first);
-			if (it == this->_exchange_rate.rbegin()) {
-				// TODO: maybe just use a value of 0
-				std::cout << "Date before recording" << std::endl;
-				throw "Date before recording"; // TODO: make better error
+			if (it == this->_exchange_rate.rend()) {
+				throw BitcoinExchange::DateTooEarly(pair.first);
 			}
 			std::cout << pair.first << " => " << pair.second << " = " << (pair.second * it->second) << std::endl;
 		} catch (BitcoinExchange::EmptyFinalLine & e) {
 		} catch (BitcoinExchange::ParseError & e) {
-			std::cout << "Error: " << e.what() << std::endl;
+			std::cout << "\x1b[33m" << "Error: " << "\x1b[0m" << e.what() << std::endl;
 		} catch (Date::InvalidDate & e) {
-			std::cout << "Error: " << e.what() << std::endl;
+			std::cout << "\x1b[33m" << "Error: " << "\x1b[0m" << e.what() << std::endl;
 		}
 	}
 }
+
+// --- Exception classes --- //
 
 char const * BitcoinExchange::ParseError::what() const throw() {
 	return "Error occurred during parsing";
 }
 
+BitcoinExchange::DateTooEarly::~DateTooEarly() throw() {}
+
+BitcoinExchange::DateTooEarly::DateTooEarly(Date date) : ParseError() {
+	std::stringstream ss;
+	ss << "Date too early: " << date;
+	this->_error_text = ss.str();
+}
+
+char const * BitcoinExchange::DateTooEarly::what() const throw() {
+	return this->_error_text.c_str();
+}
+
+BitcoinExchange::DuplicateDate::~DuplicateDate() throw() {}
+
+BitcoinExchange::DuplicateDate::DuplicateDate(Date date) {
+	std::stringstream ss;
+	ss << "Duplicate Date: " << date;
+	this->_error_text = ss.str();
+}
+
 char const * BitcoinExchange::DuplicateDate::what() const throw() {
-	return "Duplicate date";
+	return this->_error_text.c_str();
 }
 
 char const * BitcoinExchange::EmptyFinalLine::what() const throw() {
 	return "Empty final line in file";
 }
 
+BitcoinExchange::InvalidFormat::~InvalidFormat() throw() {}
+
+BitcoinExchange::InvalidFormat::InvalidFormat() : ParseError() {
+	std::stringstream ss;
+	ss << "Invalid format";
+	this->_error_text = ss.str();
+}
+
+BitcoinExchange::InvalidFormat::InvalidFormat(std::string str) : ParseError() {
+	std::stringstream ss;
+	ss << "Invalid format: \"" << str << "\"";
+	this->_error_text = ss.str();
+}
+
 char const * BitcoinExchange::InvalidFormat::what() const throw() {
-	return "Invalid format";
+	return this->_error_text.c_str();
+}
+
+BitcoinExchange::InvalidValue::~InvalidValue() throw() {}
+
+BitcoinExchange::InvalidValue::InvalidValue(double value) : ParseError() {
+	std::stringstream ss;
+	ss << "Value out of range: " << value;
+	this->_error_text = ss.str();
 }
 
 char const * BitcoinExchange::InvalidValue::what() const throw() {
-	return "Value out of range";
+	return this->_error_text.c_str();
 }
 
 char const * BitcoinExchange::StreamError::what() const throw() {
 	return "Stream operation error";
 }
 
-char const * BitcoinExchange::ValueTooHigh::what() const throw() {
-	return "Value too high";
+
+BitcoinExchange::ValueTooHigh::~ValueTooHigh() throw() {}
+
+BitcoinExchange::ValueTooHigh::ValueTooHigh(double value) : InvalidValue(value) {
+	std::stringstream ss;
+	ss << "Value too high: " << value;
+	this->_error_text = ss.str();
 }
 
-char const * BitcoinExchange::ValueTooLow::what() const throw() {
-	return "Value too low";
+BitcoinExchange::ValueTooHigh::ValueTooHigh(double value, double highest) : InvalidValue(value) {
+	std::stringstream ss;
+	ss << "Value too high: " << value << ", cannot be higher than: " << highest;
+	this->_error_text = ss.str();
 }
 
-// --- OCF ---
+BitcoinExchange::ValueTooLow::~ValueTooLow() throw() {}
+
+BitcoinExchange::ValueTooLow::ValueTooLow(double value) : InvalidValue(value) {
+	std::stringstream ss;
+	ss << "Value too low: " << value;
+	this->_error_text = ss.str();
+}
+
+BitcoinExchange::ValueTooLow::ValueTooLow(double value, double lowest) : InvalidValue(value) {
+	std::stringstream ss;
+	ss << "Value too low: " << value << ", cannot be lower than: " << lowest;
+	this->_error_text = ss.str();
+}
+
+// --- OCF --- //
 
 BitcoinExchange::BitcoinExchange(BitcoinExchange const &src) {
 	*this = src;
@@ -112,9 +175,9 @@ BitcoinExchange &BitcoinExchange::operator=(BitcoinExchange const &src) { // TOD
 	return *this;
 }
 
-// --- Protected ---
+// --- Protected --- //
 
-// --- Private ---
+// --- Private --- //
 
 BitcoinExchange::BitcoinExchange() {
 }
@@ -134,16 +197,16 @@ std::pair<Date, double> BitcoinExchange::_parse_line(std::istream & istream, std
 	}
 	size_t pos = line.find(sep);
 	if (pos == line.npos) {
-		throw BitcoinExchange::InvalidFormat();
+		throw BitcoinExchange::InvalidFormat(line);
 	}
 	double d;
 	std::stringstream ss(line.substr(pos + sep.length()));
 	if (ss.eof()) {
-		throw BitcoinExchange::InvalidFormat();
+		throw BitcoinExchange::InvalidFormat(line);
 	}
 	ss >> d;
 	if (ss.fail() || !ss.eof()) {
-		throw BitcoinExchange::InvalidFormat();
+		throw BitcoinExchange::InvalidFormat(line);
 	}
 	std::pair<Date, double> pair(line.substr(0, pos), d);
 	return pair;

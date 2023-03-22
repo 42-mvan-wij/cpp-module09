@@ -23,7 +23,7 @@ static std::deque<std::string> split(std::string str, std::string delim) {
 	return res;
 }
 
-// --- Public ---
+// --- Public --- //
 
 RPN::RPN(std::string rpn) {
 	this->_tokens = split(rpn, " ");
@@ -94,6 +94,8 @@ int	RPN::calculate() const {
 	return stack.front();
 }
 
+// --- Exception classes --- //
+
 char const * RPN::NoCalculation::what() const throw() {
 	return "No calculation to be done";
 }
@@ -114,7 +116,7 @@ char const * RPN::StreamFail::what() const throw() {
 	return "Stream operation failed";
 }
 
-// --- OCF ---
+// --- OCF --- //
 
 RPN::RPN(const RPN & src) {
 	*this = src;
@@ -128,9 +130,9 @@ RPN & RPN::operator=(RPN const & src) {
 	return *this;
 }
 
-// --- Protected ---
+// --- Protected --- //
 
-// --- Private ---
+// --- Private --- //
 
 RPN::RPN() {
 }

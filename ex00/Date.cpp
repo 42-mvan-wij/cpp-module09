@@ -2,11 +2,11 @@
 #include <sstream>
 #include "Date.hpp"
 
-// --- Public ---
+// --- Public --- //
 
 Date::Date(size_t year, size_t month, size_t day) : _year(year), _month(month), _day(day) {
 	if (!this->_vali_date()) {
-		throw Date::InvalidDate();
+		throw Date::InvalidDate(year, month, day);
 	}
 }
 
@@ -14,31 +14,30 @@ Date::Date(std::string date_string) {
 	std::stringstream ss(date_string);
 	ss >> this->_year;
 	if (ss.fail()) {
-		throw Date::InvalidDate();
+		throw Date::InvalidDate(date_string);
 	}
 	char c;
 	ss >> c;
 	if (ss.fail() || c != '-') {
-		throw Date::InvalidDate();
+		throw Date::InvalidDate(date_string);
 	}
 	ss >> this->_month;
 	if (ss.fail()) {
-		throw Date::InvalidDate();
+		throw Date::InvalidDate(date_string);
 	}
 	ss >> c;
 	if (ss.fail() || c != '-') {
-		throw Date::InvalidDate();
+		throw Date::InvalidDate(date_string);
 	}
 	ss >> this->_day;
 	if (ss.fail()) {
-		throw Date::InvalidDate();
+		throw Date::InvalidDate(date_string);
 	}
 	if (!ss.eof()) {
-		std::cout << "error" << std::endl;
-		throw Date::InvalidDate();
+		throw Date::InvalidDate(date_string);
 	}
 	if (!this->_vali_date()) {
-		throw Date::InvalidDate();
+		throw Date::InvalidDate(this->_year, this->_month, this->_day);
 	}
 }
 
@@ -92,11 +91,33 @@ bool Date::operator>=(Date const & rhs) const {
 	return (!this->operator<(rhs));
 }
 
-char const * Date::InvalidDate::what() const throw() {
-	return "Invalid Date";
+// --- Exception classes --- //
+
+Date::InvalidDate::~InvalidDate() throw () {}
+
+Date::InvalidDate::InvalidDate() {
+	std::stringstream ss;
+	ss << "Invalid date";
+	this->_error_text = ss.str();
 }
 
-// --- OCF ---
+Date::InvalidDate::InvalidDate(size_t year, size_t month, size_t day) {
+	std::stringstream ss;
+	ss << "Invalid date: " << year << "-" << month << "-" << day;
+	this->_error_text = ss.str();
+}
+
+Date::InvalidDate::InvalidDate(std::string date_string) {
+	std::stringstream ss;
+	ss << "Invalid date: " << date_string;
+	this->_error_text = ss.str();
+}
+
+char const * Date::InvalidDate::what() const throw() {
+	return this->_error_text.c_str();
+}
+
+// --- OCF --- //
 
 Date::Date(Date const & src) {
 	*this = src;
@@ -112,9 +133,9 @@ Date &Date::operator=(Date const & src) {
 	return *this;
 }
 
-// --- Protected ---
+// --- Protected --- //
 
-// --- Private ---
+// --- Private --- //
 
 Date::Date() {
 }

@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iostream>
 
-// --- Public ---
+// --- Public --- //
 
 PmergeMe PmergeMe::from(char **args) {
 	PmergeMe result;
@@ -53,7 +53,7 @@ void PmergeMe::sort() {
 	std::cout << "Time to process a range of " << "\x1b[34m" << this->_container1.size() << "\x1b[0m" << " elements with " << "\x1b[34m" << "std::list" << "\x1b[0m" << " : " << time2.count() << "μs" << std::endl;
 }
 
-// --- OCF ---
+// --- OCF --- //
 
 PmergeMe::PmergeMe(const PmergeMe & src) {
 	*this = src;
@@ -68,13 +68,15 @@ PmergeMe &PmergeMe::operator=(PmergeMe const & src) {
 	return *this;
 }
 
+// --- Exception classes --- //
+
 char const * PmergeMe::NotANumber::what() const throw() {
 	return "Not a number";
 }
 
-// --- Protected ---
+// --- Protected --- //
 
-// --- Private ---
+// --- Private --- //
 
 PmergeMe::PmergeMe() {
 }
