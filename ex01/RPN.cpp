@@ -29,7 +29,7 @@ RPN::RPN(std::string rpn) {
 	this->_tokens = split(rpn, " ");
 
 	size_t stack_size = 0;
-	for (decltype(this->_tokens)::iterator it = this->_tokens.begin(); it != this->_tokens.end(); it++) {
+	for (std::deque<std::string>::iterator it = this->_tokens.begin(); it != this->_tokens.end(); it++) {
 		std::string & token = *it;
 		if (token == "+" || token == "-" || token == "*" || token == "/") {
 			if (stack_size < 2) {
@@ -58,7 +58,7 @@ RPN::RPN(std::string rpn) {
 int	RPN::calculate() const {
 	std::deque<int> stack;
 
-	for (decltype(this->_tokens)::const_iterator it = this->_tokens.begin(); it != this->_tokens.end(); it++) {
+	for (std::deque<std::string>::const_iterator it = this->_tokens.begin(); it != this->_tokens.end(); it++) {
 		std::string const & token = *it;
 		if (token == "+" || token == "-" || token == "*" || token == "/") {
 			int b = stack.back();
