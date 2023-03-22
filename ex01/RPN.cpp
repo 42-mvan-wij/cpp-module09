@@ -65,7 +65,7 @@ int	RPN::calculate() const {
 			stack.pop_back();
 			int a = stack.back();
 			stack.pop_back();
-			switch (token.front()) {
+			switch (token[0]) {
 				case '+':
 					stack.push_back(a + b);
 					break;
