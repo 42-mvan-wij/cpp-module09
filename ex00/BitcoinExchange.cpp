@@ -3,6 +3,9 @@
 #include <iostream>
 #include "BitcoinExchange.hpp"
 
+#define YELLOW "\x1b[33m"
+#define RESET_COLOR "\x1b[0m"
+
 // --- Public --- //
 
 BitcoinExchange::BitcoinExchange(std::string exchange_filename) {
@@ -57,9 +60,9 @@ void BitcoinExchange::parse(std::istream & istream) const {
 			std::cout << pair.first << " => " << pair.second << " = " << (pair.second * it->second) << std::endl;
 		} catch (BitcoinExchange::EmptyFinalLine & e) {
 		} catch (BitcoinExchange::ParseError & e) {
-			std::cout << "\x1b[33m" << "Error: " << "\x1b[0m" << e.what() << std::endl;
+			std::cout << UNKNOWN_COLOR << "Error: " << RESET_COLOR << e.what() << std::endl;
 		} catch (Date::InvalidDate & e) {
-			std::cout << "\x1b[33m" << "Error: " << "\x1b[0m" << e.what() << std::endl;
+			std::cout << UNKNOWN_COLOR << "Error: " << RESET_COLOR << e.what() << std::endl;
 		}
 	}
 }
@@ -170,8 +173,8 @@ BitcoinExchange::BitcoinExchange(BitcoinExchange const &src) {
 BitcoinExchange::~BitcoinExchange() {
 }
 
-BitcoinExchange &BitcoinExchange::operator=(BitcoinExchange const &src) { // TODO: do something
-	(void)src;
+BitcoinExchange &BitcoinExchange::operator=(BitcoinExchange const &src) {
+	this->_exchange_rate = src._exchange_rate;
 	return *this;
 }
 

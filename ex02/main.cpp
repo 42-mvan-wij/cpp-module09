@@ -5,7 +5,7 @@
 
 # define INSERTION_LENGTH 5
 
-int main(int argc, char **argv) { // TODO: test with overflow (also maybe do for other exercises), and check if duplicates are working correctly (may error, doesn't have to)
+int main(int argc, char **argv) {
 	try {
 		size_t start = (argc == 0) ? 0 : 1;
 		PmergeMe pmerge_me = PmergeMe::from(&argv[start]);

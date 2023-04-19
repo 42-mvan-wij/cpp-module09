@@ -3,6 +3,9 @@
 #include <sstream>
 #include <iostream>
 
+#define PURPLE "\x1b[34m"
+#define RESET_COLOR "\x1b[0m"
+
 // --- Public --- //
 
 PmergeMe PmergeMe::from(char **args) {
@@ -46,11 +49,22 @@ void PmergeMe::sort() {
 	}
 	std::cout << std::endl;
 
-    std::chrono::microseconds time1 = std::chrono::duration_cast<std::chrono::microseconds>(middle - start);
-    std::chrono::microseconds time2 = std::chrono::duration_cast<std::chrono::microseconds>(end - middle);
+	std::chrono::nanoseconds time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(middle - start);
+	std::chrono::nanoseconds time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(end - middle);
 
-	std::cout << "Time to process a range of " << "\x1b[34m" << this->_container1.size() << "\x1b[0m" << " elements with " << "\x1b[34m" << "std::vector" << "\x1b[0m" << " : " << time1.count() << "μs" << std::endl;
-	std::cout << "Time to process a range of " << "\x1b[34m" << this->_container1.size() << "\x1b[0m" << " elements with " << "\x1b[34m" << "std::list" << "\x1b[0m" << " : " << time2.count() << "μs" << std::endl;
+	std::cout
+		<< "Time to process a range of "
+		<< PURPLE << this->_container1.size() << RESET_COLOR
+		<< " elements with "
+		<< PURPLE << "std::vector" << RESET_COLOR
+		<< " : " << time1.count() / 1000.0f << "μs" << std::endl;
+
+	std::cout
+		<< "Time to process a range of "
+		<< PURPLE << this->_container1.size() << RESET_COLOR
+		<< " elements with "
+		<< PURPLE << "std::list" << RESET_COLOR
+		<< " : " << time2.count() / 1000.0f << "μs" << std::endl;
 }
 
 // --- OCF --- //
