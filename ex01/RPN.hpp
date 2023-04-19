@@ -35,6 +35,16 @@ class RPN {
 				char const * what() const throw();
 		};
 
+		class Overflow : public std::exception {
+			public:
+				char const * what() const throw();
+		};
+
+		class DivideByZero : public std::exception {
+			public:
+				char const * what() const throw();
+		};
+
 		RPN(RPN const & src);
 		virtual ~RPN();
 		RPN & operator=(RPN const & src);
@@ -43,6 +53,11 @@ class RPN {
 	private:
 		std::deque<std::string> _tokens;
 		RPN();
+
+		static int _checked_add(int a, int b);
+		static int _checked_subtract(int a, int b);
+		static int _checked_multiply(int a, int b);
+		static int _checked_divide(int a, int b);
 
 };
 

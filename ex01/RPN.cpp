@@ -67,16 +67,16 @@ int	RPN::calculate() const {
 			stack.pop_back();
 			switch (token[0]) {
 				case '+':
-					stack.push_back(a + b);
+					stack.push_back(RPN::_checked_add(a, b));
 					break;
 				case '-':
-					stack.push_back(a - b);
+					stack.push_back(RPN::_checked_subtract(a, b));
 					break;
 				case '*':
-					stack.push_back(a * b);
+					stack.push_back(RPN::_checked_multiply(a, b));
 					break;
 				case '/':
-					stack.push_back(a / b);
+					stack.push_back(RPN::_checked_divide(a, b));
 					break;
 			}
 		}
@@ -116,6 +116,14 @@ char const * RPN::StreamFail::what() const throw() {
 	return "Stream operation failed";
 }
 
+const char * RPN::Overflow::what() const throw() {
+	return "Calculation resulted in over-/underflow";
+}
+
+const char * RPN::DivideByZero::what() const throw() {
+	return "Calculation resulted in division by zero";
+}
+
 // --- OCF --- //
 
 RPN::RPN(const RPN & src) {
@@ -135,4 +143,58 @@ RPN & RPN::operator=(RPN const & src) {
 // --- Private --- //
 
 RPN::RPN() {
+}
+
+// static
+int RPN::_checked_add(int a, int b) {
+	bool a_is_positive = (a >= 0);
+	bool b_is_positive = (b >= 0);
+	if (a_is_positive != b_is_positive)
+		return a + b;
+	if (a > 0) {
+		if (b > INT_MAX - a) {
+			throw RPN::Overflow();
+		}
+		return a + b;
+	}
+	if (b < INT_MIN - a) {
+		throw RPN::Overflow();
+	}
+	return a + b;
+}
+
+// static
+int RPN::_checked_subtract(int a, int b) {
+	if (b > 0) {
+		return RPN::_checked_add(a, -b);
+	}
+	if (a > 0) {
+		return -RPN::_checked_add(-a, b);
+	}
+	return a - b;
+}
+
+// static
+int RPN::_checked_multiply(int a, int b) {
+	if (a == 0 || b == 0) {
+		return 0;
+	}
+	if (a > INT_MAX / b) {
+		throw RPN::Overflow();
+	}
+	if (a < INT_MIN / b) {
+		throw RPN::Overflow();
+	}
+	return a * b;
+}
+
+// static
+int RPN::_checked_divide(int a, int b) {
+	if (b == 0) {
+		throw RPN::DivideByZero();
+	}
+	if (b == -1 && a == INT_MIN) {
+		throw RPN::Overflow();
+	}
+	return a / b;
 }
