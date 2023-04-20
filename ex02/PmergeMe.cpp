@@ -1,5 +1,5 @@
 #include "PmergeMe.hpp"
-#include <chrono>
+#include <time.h>
 #include <sstream>
 #include <iostream>
 
@@ -37,11 +37,17 @@ void PmergeMe::sort() {
 	}
 	std::cout << std::endl;
 
-	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+	timespec ts_start;
+	timespec ts_middle;
+	timespec ts_end;
+
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts_start);
 	PmergeMe::_sort(this->_container1, 0, this->_element_count - 1);
-	std::chrono::high_resolution_clock::time_point middle = std::chrono::high_resolution_clock::now();
+
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts_middle);
+
 	PmergeMe::_sort(this->_container2, 0, this->_element_count - 1);
-	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts_end);
 
 	std::cout << "After: ";
 	for (container1::const_iterator it = this->_container1.begin(); it != this->_container1.end(); ++it) {
@@ -49,22 +55,22 @@ void PmergeMe::sort() {
 	}
 	std::cout << std::endl;
 
-	std::chrono::nanoseconds time1 = std::chrono::duration_cast<std::chrono::nanoseconds>(middle - start);
-	std::chrono::nanoseconds time2 = std::chrono::duration_cast<std::chrono::nanoseconds>(end - middle);
+	double time1 = (ts_middle.tv_sec - ts_start.tv_sec) * 1000000.0 + (ts_middle.tv_nsec - ts_start.tv_nsec) / 1000.0;
+	double time2 = (ts_end.tv_sec - ts_middle.tv_sec) * 1000000.0 + (ts_end.tv_nsec - ts_middle.tv_nsec) / 1000.0;
 
 	std::cout
 		<< "Time to process a range of "
 		<< PURPLE << this->_container1.size() << RESET_COLOR
 		<< " elements with "
 		<< PURPLE << "std::vector" << RESET_COLOR
-		<< " : " << time1.count() / 1000.0f << "μs" << std::endl;
+		<< " : " << time1 << "\u03bcs" << std::endl; // \u03bc = mu
 
 	std::cout
 		<< "Time to process a range of "
 		<< PURPLE << this->_container1.size() << RESET_COLOR
 		<< " elements with "
 		<< PURPLE << "std::list" << RESET_COLOR
-		<< " : " << time2.count() / 1000.0f << "μs" << std::endl;
+		<< " : " << time2 << "\u03bcs" << std::endl; // \u03bc = mu
 }
 
 // --- OCF --- //
