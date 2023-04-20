@@ -60,9 +60,9 @@ void BitcoinExchange::parse(std::istream & istream) const {
 			std::cout << pair.first << " => " << pair.second << " = " << (pair.second * it->second) << std::endl;
 		} catch (BitcoinExchange::EmptyFinalLine & e) {
 		} catch (BitcoinExchange::ParseError & e) {
-			std::cout << UNKNOWN_COLOR << "Error: " << RESET_COLOR << e.what() << std::endl;
+			std::cout << YELLOW << "Error: " << RESET_COLOR << e.what() << std::endl;
 		} catch (Date::InvalidDate & e) {
-			std::cout << UNKNOWN_COLOR << "Error: " << RESET_COLOR << e.what() << std::endl;
+			std::cout << YELLOW << "Error: " << RESET_COLOR << e.what() << std::endl;
 		}
 	}
 }
